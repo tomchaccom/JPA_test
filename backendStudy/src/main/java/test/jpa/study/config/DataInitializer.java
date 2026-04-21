@@ -32,9 +32,9 @@ public class DataInitializer {
     public void initData() {
         log.info("==== 더미 데이터 생성을 시작합니다 ====");
 
-        // 100명의 유저를 생성합니다.
+        // 유저 수를 10,000명으로 대폭 늘립니다 (N+1 쿼리를 1만 번 유발하기 위함)
         List<User> users = new ArrayList<>();
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= 10000; i++) {
             User user = User.builder()
                     .username("user" + i)
                     .email("user" + i + "@test.com")
@@ -43,11 +43,10 @@ public class DataInitializer {
         }
         userRepository.saveAll(users);
 
-        // 일대다 무결성을 위해 각 유저가 10개의 게시물을 작성하도록 합니다. (총 1000개의 Post)
-        // 극단적인 N+1 확인을 원한다면 유저 1000명 / 각 1개 포스트도 좋지만, 현실적인 비율인 유저1:포스트10으로 설정합니다.
+        // 각 유저당 2개의 포스트를 작성하여 총 20,000개의 게시글을 만듭니다.
         List<Post> posts = new ArrayList<>();
         for (User user : users) {
-            for (int j = 1; j <= 10; j++) {
+            for (int j = 1; j <= 2; j++) {
                 Post post = Post.builder()
                         .title(user.getUsername() + "의 게시글 " + j)
                         .content("게시글 내용입니다.")
@@ -56,19 +55,19 @@ public class DataInitializer {
                 posts.add(post);
             }
         }
-        // Save using persist via a loop since PostRepository has no saveAll in pure JPA implementation
+        // 대량 저장을 위해 루프
         posts.forEach(postRepository::save);
 
-        // N:M Like 더미 데이터도 100개(글 100개에 대해 1번 유저가 좋아요) 정도 생성합니다.
-        for (int i = 0; i < 100; i++) {
+        // 좋아요 데이터도 조금 더 늘림
+        for (int i = 0; i < 500; i++) {
             Like like = Like.builder()
-                    .user(users.get(0)) // 1번 유저가
-                    .post(posts.get(i)) // 첫 100개의 글에 좋아요
+                    .user(users.get(0))
+                    .post(posts.get(i))
                     .build();
             likeRepository.save(like);
         }
 
         log.info("==== 더미 데이터 생성이 완료되었습니다 ====");
-        log.info("생성된 다(N) 데이터 수: Post 1000개 완료");
+        log.info("생성된 다(N) 데이터 수: 유저 10000명, Post 20000개 로딩 완료");
     }
 }
