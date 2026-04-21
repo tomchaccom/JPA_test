@@ -1,45 +1,19 @@
 package test.jpa.study.repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import test.jpa.study.domain.User;
 
 import java.util.List;
-import java.util.Optional;
 
-@Repository
-public class UserRepository {
+/**
+ * Spring Data JPA를 이용한 UserRepository
+ * 순수 JPA 방식(Post, Like Repository)과 달리 JpaRepository 인터페이스만 상속받으면
+ * save, findById, findAll, delete 등의 기본적인 CRUD 메서드를 자동으로 제공받습니다.
+ */
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    @PersistenceContext
-    private EntityManager em;
+    // Spring Data JPA의 쿼리 메서드 기능
+    // 메서드 이름만으로 JPQL 쿼리("SELECT u FROM User u WHERE u.username = :username")가 자동 생성됩니다.
+    List<User> findByUsername(String username);
 
-    // 저장
-    public User save(User user) {
-        em.persist(user);
-        return user;
-    }
-
-    // 단건 조회
-    public Optional<User> findById(Long id) {
-        return Optional.ofNullable(em.find(User.class, id));
-    }
-
-    // 전체 조회
-    public List<User> findAll() {
-        return em.createQuery("SELECT u FROM User u", User.class)
-                .getResultList();
-    }
-
-    // 이름으로 조회
-    public List<User> findByUsername(String username) {
-        return em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
-                .setParameter("username", username)
-                .getResultList();
-    }
-
-    // 삭제
-    public void delete(User user) {
-        em.remove(user);
-    }
 }
